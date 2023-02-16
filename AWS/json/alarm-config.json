@@ -9,7 +9,7 @@
     "DatapointsToAlarm": 1,
     "Threshold": 10,
     "ComparisonOperator": "GreaterThanOrEqualToThreshold",
-    "TreatMissingData": "breaching",
+    "TreatMissingData": "ignore",
     "Metrics": [{
         "Id": "m1",
         "MetricStat": {
