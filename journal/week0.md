@@ -45,3 +45,28 @@ The output of the command is
 In order to proove that I am using this account I am sharing this screenshoot
 
 ![AWS ACCOUNT SCREENSHOT](assets/aws-account.png)
+
+To use AWS CLI in gitpod I have to save my environment variables to gitpod securely to do that I used this commands
+```
+gp env AWS_ACCESS_KEY_ID=MyAccessID
+gp env AWS_SECRET_ACCESS_KEY=MySecretKey
+```
+
+### Preparing for creating budget
+
+To create any budget into the AWS I have to create anvironment variable which is my account id
+in order to do that I used this command
+```
+gp env AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+```
+
+### Creating 10 Dollar Budget
+In order to create budget from AWS CLI, I have to use this command
+```
+aws budgets create-budget --account-id MY ID --budget file://pera1.json --notifications-with-subscribers file://pera2.json
+```
+To create those files I used this [link](https://docs.aws.amazon.com/cli/latest/reference/budgets/create-budget.html) as reference, and created those files and created budget of 10 dollars. Here is the proof of it
+
+![BUDGET](/assets/budget.png)
+
+
