@@ -67,6 +67,6 @@ aws budgets create-budget --account-id MY ID --budget file://pera1.json --notifi
 ```
 To create those files I used this [link](https://docs.aws.amazon.com/cli/latest/reference/budgets/create-budget.html) as reference, and created those files and created budget of 10 dollars. Here is the proof of it
 
-![BUDGET](/assets/budget.png)
+![BUDGET](assets/budget.png)
 
 
