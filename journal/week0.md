@@ -6,7 +6,7 @@
 
 I am using gitpod account. I have installed AWS CLI in my gitpod account. To install the aws cli I have installed the aws cli into the gitpod via some commands
 
-````
+```
 url "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 sudo ./aws/install
@@ -43,4 +43,5 @@ The output of the command is
 }
 ```
 In order to proove that I am using this account I am sharing this screenshoot
-![AWS ACCOUNT SCREENSHOT](/assets/aws-account.png)
+
+![AWS ACCOUNT SCREENSHOT](assets/aws-account.png)
