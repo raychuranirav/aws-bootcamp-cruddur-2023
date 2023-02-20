@@ -8,7 +8,7 @@ services:
     ports:
       - "4567:4567"
     volumes:
-      - ./backend-flask:/backend-flask
+      - ./backend-flask:/BACKEND
   frontend-react-js:
     environment:
       REACT_APP_BACKEND_URL: "https://4567-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
@@ -16,7 +16,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend-react-js:/frontend-react-js
+      - ./frontend-react-js:/FRONTEND
 
 # the name flag is a hack to change the default prepend folder
 # name when outputting the image names
