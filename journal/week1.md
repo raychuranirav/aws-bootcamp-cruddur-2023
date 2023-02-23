@@ -2,7 +2,7 @@
 
 ## REQUIRED HOMEWORK 
 
-Note : In some code you will find explaination so that you can know that I did the research for those code the actual code is without explanation 
+**Note : In some code you will find explaination so that you can know that I did the research for those code the actual code is without explanation** 
 
 I watched the live video and done things which I saw on the video and did some changes into the gitpod.
 
@@ -33,11 +33,11 @@ EXPOSE ${PORT}
 # This will run our backend via flask module of python
 CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--port=4567"]
 ```
-* From the Dockerfile I tried to make an docker container to run our backend in order to do that I run following command
+* From the Dockerfile I made a docker container to run our backend in order to do that I run following command
 ```docker
 docker build -t  backend-flask ./backend-flask
 ```
-* Tried to run the container via following command
+* Ran the container via following command
 
 ```sh
 # This command is to run the docker will change the entrypoint to backend-flask via -it, remove the image after completing test/whene I exit via --rm, 
