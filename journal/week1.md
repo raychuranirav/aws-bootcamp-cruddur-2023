@@ -139,3 +139,97 @@ docker compose up -d
 I can see that frontend is connacted to the backend
 
 ![FRONTEND IS CONNACTED TO THE BACKEND](assets/frontend-test.png)
+
+* Added the dynamodb and postgres into docker compose file
+
+In order to run the dynamodb via container I added the following script into the docker compose file
+
+```docker
+dynamodb-local:
+    # https://stackoverflow.com/questions/67533058/persist-local-dynamodb-data-in-volumes-lack-permission-unable-to-open-databa
+    # We needed to add user:root to get this working.
+    user: root
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+```
+
+In order to run the postgres via container I added the following script into docker compose file
+
+```docker
+db:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+volumes:
+  db:
+    driver: local
+```
+
+I added follwing script to gidpod.yml file to connect the postgres. Basically this is for installing postgres client to the gitpod so that I can communicate with the postgres via cli
+
+```yml
+  - name: postgres
+    init: |
+      curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+      echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" |sudo tee  /etc/apt/sources.list.d/pgdg.list
+      sudo apt update
+      sudo apt install -y postgresql-client-13 libpq-dev
+```
+
+After doing it I have to use following command so that I can test that both the dbs are working
+
+```bash
+docker compose up -d
+```
+* Tested that dynamodb and postgres is working
+In order to do that I ran following commands
+```bash
+
+# This is to create table of dynamodb
+
+aws dynamodb create-table \
+    --endpoint-url http://localhost:8000 \
+    --table-name Music \
+    --attribute-definitions \
+        AttributeName=Artist,AttributeType=S \
+        AttributeName=SongTitle,AttributeType=S \
+    --key-schema AttributeName=Artist,KeyType=HASH AttributeName=SongTitle,KeyType=RANGE \
+    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
+    --table-class STANDARD
+
+# This is to insert something into the dynamodb
+aws dynamodb put-item \
+    --endpoint-url http://localhost:8000 \
+    --table-name Music \
+    --item \
+        '{"Artist": {"S": "No One You Know"}, "SongTitle": {"S": "Call Me Today"}, "AlbumTitle": {"S": "Somewhat Famous"}}' \
+    --return-consumed-capacity TOTAL
+
+# This is to list all of the dynamodb tables
+aws dynamodb list-tables --endpoint-url http://localhost:8000
+
+# This is to query the Items from the table Music
+aws dynamodb scan --table-name Music --query "Items" --endpoint-url http://localhost:8000
+
+```
+Here you can see the output
+
+![Dynamodb test result](assets/dynamodb-test.PNG)
+
+After that I installed the postgres extention into the gitpod and added it to the gitpod.yml file and tested the connection of postgres and it was success
+
+Here you can see the result
+
+![postgres connection test result](assets/postgres-test.png)
