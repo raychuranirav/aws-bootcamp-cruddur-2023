@@ -16,7 +16,7 @@ tasks:
       sudo apt install -y postgresql-client-13 libpq-dev
       cd frontend-react-js
       npm i
-      cd..
+      cd ..
 vscode:
   extensions:
     - 42Crunch.vscode-openapi
