@@ -9,7 +9,7 @@ I watched the live video and done things which I saw on the video and did some c
 ### Created Dockerfile into the backend-flask folder and written this code into the file
 
 
-```
+```Dockerfile
 # This code will fetch the specified python image from the docker hub
 FROM python:3.10-slim-buster
 
@@ -52,7 +52,7 @@ After running the command I can open the backend into the browser via URL which 
 
 * Created Dockerfile into the frontend-react-js folder and save it with following code
 
-```docker
+```Dockerfile
 # This will fetch the specified node image
 FROM node:16.18
 
@@ -76,7 +76,7 @@ CMD ["npm", "start"]
 
 Before running the docker build command I have to install the npm into gotpod workspace so I did it via following command
 
-```
+```sh
 npm install
 ```
 
@@ -146,7 +146,7 @@ I can see that frontend is connacted to the backend
 
 In order to run the dynamodb via container I added the following script into the docker compose file
 
-```docker
+```yml
 dynamodb-local:
     # https://stackoverflow.com/questions/67533058/persist-local-dynamodb-data-in-volumes-lack-permission-unable-to-open-databa
     # We needed to add user:root to get this working.
@@ -163,7 +163,7 @@ dynamodb-local:
 
 In order to run the postgres via container I added the following script into docker compose file
 
-```docker
+```yml
 db:
     image: postgres:13-alpine
     restart: always
@@ -192,12 +192,12 @@ I added follwing script to gidpod.yml file to connect the postgres. Basically th
 
 After doing it I have to use following command so that I can test that both the dbs are working
 
-```bash
+```sh
 docker compose up -d
 ```
 * Tested that dynamodb and postgres is working
 In order to do that I ran following commands
-```bash
+```sh
 
 # This is to create table of dynamodb
 
@@ -236,6 +236,189 @@ Here you can see the result
 
 ![postgres connection test result](assets/postgres-test.png)
 
+### Done nessesery steps to run notification page
+
+In order to do that I have to make some changes into backend and frontend
+
+* Changes inside backend-flask/app.py
+```py
+# To import notification activity 
+from services.notifications_activities import *
+
+# To add route to notification page
+@app.route("/api/activities/notifications", methods=['GET'])
+def data_notifications():
+  data = NotificationsActivities.run()
+  return data, 200
+
+```
+* Added following code into backend-flask/openapi-3.0.yml
+```yml
+ /api/activities/notifications:
+    get:
+      description: 'Return a feed of activity all of those that I follow'
+      tags:
+       - activities
+      parameters: []
+      responses:
+        '200':
+          description: 'Returns an array of activities'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activity'
+```
+
+* Created new notifications_activities.py file at backend-flask/services with following code
+```py
+from datetime import datetime, timedelta, timezone
+class NotificationsActivities:
+  def run():
+    now = datetime.now(timezone.utc).astimezone()
+    results = [{
+      'uuid': '68f126b0-1ceb-4a33-88be-d90fa7109eee',
+      'handle':  'Nirav Raychura',
+      'message': 'ANDREW BROWN IS SO COOL',
+      'created_at': (now - timedelta(days=2)).isoformat(),
+      'expires_at': (now + timedelta(days=5)).isoformat(),
+      'likes_count': 5,
+      'replies_count': 1,
+      'reposts_count': 0,
+      'replies': [{
+        'uuid': '26e12864-1c26-5c3a-9658-97a10f8fea67',
+        'reply_to_activity_uuid': '68f126b0-1ceb-4a33-88be-d90fa7109eee',
+        'handle':  'Worf',
+        'message': 'This post has no honor!',
+        'likes_count': 0,
+        'replies_count': 0,
+        'reposts_count': 0,
+        'created_at': (now - timedelta(days=2)).isoformat()
+      }],
+    },
+
+    ]
+    return results
+```
+
+* Added following code in frontend-react-js/src/App.js file
+
+```js
+import NotificationsFeedPage from './pages/NotificationsFeedPage';
+
+  {
+    path: "/notifications",
+    element: <NotificationsFeedPage />
+  },
+```
+
+* Created NotificationsFeedPage.css at frontend-react-js/src/pages with following code
+
+```css
+
+article {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+```
+
+* Created NotificationsFeedPage.js at frontend-react-js/src/pages with following code
+
+```js
+import './NotificationsFeedPage.css';
+import React from "react";
+
+import DesktopNavigation  from '../components/DesktopNavigation';
+import DesktopSidebar     from '../components/DesktopSidebar';
+import ActivityFeed from '../components/ActivityFeed';
+import ActivityForm from '../components/ActivityForm';
+import ReplyForm from '../components/ReplyForm';
+
+// [TODO] Authenication
+import Cookies from 'js-cookie'
+
+export default function NotificationsFeedPage() {
+  const [activities, setActivities] = React.useState([]);
+  const [popped, setPopped] = React.useState(false);
+  const [poppedReply, setPoppedReply] = React.useState(false);
+  const [replyActivity, setReplyActivity] = React.useState({});
+  const [user, setUser] = React.useState(null);
+  const dataFetchedRef = React.useRef(false);
+
+  const loadData = async () => {
+    try {
+      const backend_url = `${process.env.REACT_APP_BACKEND_URL}/api/activities/notifications`
+      const res = await fetch(backend_url, {
+        method: "GET"
+      });
+      let resJson = await res.json();
+      if (res.status === 200) {
+        setActivities(resJson)
+      } else {
+        console.log(res)
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const checkAuth = async () => {
+    console.log('checkAuth')
+    // [TODO] Authenication
+    if (Cookies.get('user.logged_in')) {
+      setUser({
+        display_name: Cookies.get('user.name'),
+        handle: Cookies.get('user.username')
+      })
+    }
+  };
+
+  React.useEffect(()=>{
+    //prevents double call
+    if (dataFetchedRef.current) return;
+    dataFetchedRef.current = true;
+
+    loadData();
+    checkAuth();
+  }, [])
+
+  return (
+    <article>
+      <DesktopNavigation user={user} active={'notifications'} setPopped={setPopped} />
+      <div className='content'>
+        <ActivityForm  
+          popped={popped}
+          setPopped={setPopped} 
+          setActivities={setActivities} 
+        />
+        <ReplyForm 
+          activity={replyActivity} 
+          popped={poppedReply} 
+          setPopped={setPoppedReply} 
+          setActivities={setActivities} 
+          activities={activities} 
+        />
+        <ActivityFeed 
+          title="Notifications" 
+          setReplyActivity={setReplyActivity} 
+          setPopped={setPoppedReply} 
+          activities={activities} 
+        />
+      </div>
+      <DesktopSidebar user={user} />
+    </article>
+  );
+}
+```
+After that I use ```docker compose up -d``` command and it was a success
+
+Here you can see that notification is running as it should be
+
+![notification](assets/notifications.png)
+
+
 ##  Homework Challenges 
 
 ### Pushed the docker images into the docker hub
@@ -248,19 +431,19 @@ Here is you can see that I made an account into the dockerhub even I used the MF
 
 In order to push the image into the dockerhub I have to login to dockerhub via cli so I used the following command to do that
 
-```bash
+```sh
 docker login -u raychuranirav -p accesstoken
 ```
 After that I have to tag the images which I want to upload. In order to do that I used following command
 Here I am just preparing my images to upload I am not putting any tags and by default it will use latest tag and I am ok with it 
 
-```bash
+```sh
 docker image tag aws-bootcamp-cruddur-2023-backend-flask:latest  raychuranirav/cruddur-backend
 docker image tag aws-bootcamp-cruddur-2023-frontend-react-js:latest raychuranirav/crudder-frontend
 ``` 
 After that I pushed the Images via following commands
 
-```bash
+```sh
 docker image push raychuranirav/cruddur-backend:latest
 docker image push raychuranirav/cruddur-frontend:latest
 ```
@@ -280,7 +463,7 @@ So far I came to know that it has five commands to implement healthcheck into do
 |start_period|This property specifies the number of seconds your container needs to bootstrap|
 
 The follwing code I have to put inside the docker compose file to run health check for frontend
-```
+```yml
   healthcheck:
       test: curl --fail "https://3000-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}" || exit 1
       interval: 60s
@@ -315,7 +498,7 @@ Here you can see that I use snyk to search vulnerabilities inside github code an
 
 I created an ec2 instence with following user data
 
-```bash
+```sh
 #!/bin/bash
 
 # This will update the ec2 instance 
@@ -341,7 +524,7 @@ sudo systemctl start docker.service
 
 When ec2 instence started I connected into it and run following commands
 
-```bash
+```sh
 # To give ec2-user permission to use docker without root (BEST PRACTICE)
 sudo usermod -a -G docker ec2-user
 id ec2-user
@@ -373,7 +556,7 @@ docker-compose up -d
 ```
 Here is the docker compose file I used to run both the containers inside ec2
 
-```
+```yml
 version: "3.8"
 services:
   backend-flask:
