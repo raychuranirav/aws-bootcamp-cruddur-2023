@@ -494,7 +494,7 @@ Here you can see that I use snyk to search vulnerabilities inside github code an
 
 ![SNYK](assets/SNYK.jpg)
 
-* Launched an EC2 instance that has docker installed, and pull a container to demonstrate you can run your own docker processes.
+### Launched an EC2 instance that has docker installed, and pull both containers and ran crudder successfully inside ec2
 
 I created an ec2 instence with following user data
 
