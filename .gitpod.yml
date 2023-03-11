@@ -16,7 +16,12 @@ tasks:
       sudo apt install -y postgresql-client-13 libpq-dev
       cd frontend-react-js
       npm i
+      npm i aws-amplify --save
       cd ..
+      cd backend-flask
+      pip3 install -r "requirements.txt"
+      cd ..
+      
 vscode:
   extensions:
     - 42Crunch.vscode-openapi
