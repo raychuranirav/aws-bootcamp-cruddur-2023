@@ -7,6 +7,10 @@ services:
       OTEL_SERVICE_NAME: "backend-flask"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://api.honeycomb.io"
       OTEL_EXPORTER_OTLP_HEADERS: "x-honeycomb-team=${HONEYCOMB_API_KEY}"
+      REACT_APP_AWS_PROJECT_REGION: "ap-south-1"
+      REACT_APP_AWS_COGNITO_REGION: "ap-south-1"
+      REACT_APP_AWS_USER_POOLS_ID: "ap-south-1_CFSiAMDFz"
+      REACT_APP_CLIENT_ID: "31kcuspdpb8vfq4hcf4ga6k0gl"
     build: ./backend-flask
     ports:
       - "4567:4567"
