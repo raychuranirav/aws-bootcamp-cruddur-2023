@@ -14,10 +14,10 @@ export default function SigninPage() {
   const [errors, setErrors] = React.useState('');
 
   const onsubmit = async (event) => {
-    setErrors('')
+    setCognitoErrors('')
     event.preventDefault();
     try {
-      Auth.signIn(email, password)
+      Auth.signIn(username, password)
         .then(user => {
           localStorage.setItem("access_token", user.signInUserSession.accessToken.jwtToken)
           window.location.href = "/"
@@ -27,7 +27,7 @@ export default function SigninPage() {
       if (error.code == 'UserNotConfirmedException') {
         window.location.href = "/confirm"
       }
-      setErrors(error.message)
+      setCognitoErrors(error.message)
     }
     return false
   }
